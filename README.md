@@ -1,374 +1,171 @@
-# DSO101 Assignment 1 - CI/CD Pipeline
-**Student**: Tshering Wangchuck  
-**Student ID**: 02230304  
-**Date**: June 2025
+# Secure CI/CD Pipeline with Docker and GitHub Actions
 
-## Project Overview
-A full-stack To-Do List application demonstrating CI/CD pipeline implementation with Docker containerization and automated deployment strategies.
-
-**Tech Stack:**
-- **Frontend**: React.js
-- **Backend**: Node.js with Express
-- **Database**: PostgreSQL
-- **Containerization**: Docker
-- **Deployment**: Render.com
-- **Version Control**: GitHub
-
-## Live Application URLs
-
-### Part A: Docker Hub Deployment
-- **Backend API**: https://be-todo-8bkl.onrender.com
-- **Frontend App**: https://fe-todo-vng3.onrender.com
-- **Test API**: https://be-todo-8bkl.onrender.com/api/tasks
-
-### Part B: Automated GitHub Deployment
-- **Backend API**: https://be-todo-auto.onrender.com
-- **Frontend App**: https://fe-todo-auto.onrender.com
-- **Test API**: https://be-todo-auto.onrender.com/api/tasks
+**Assignment 4 - Continuous Integration and Continuous Deployment (DSO101)**  
+**Student:** Tandin Wangchuck  
+**Student ID:** 02230304  
+**Course:** Bachelor's of Engineering in Software Engineering (SWE)  
+**Date of Submission:** 28th May 2025
 
 ---
 
-## Step 0: Local Development Setup
+## Overview
 
-### Application Features
-✅ **Create Tasks**: Add new to-do items  
-✅ **Read Tasks**: View all tasks in a clean interface  
-✅ **Update Tasks**: Edit task titles and mark as complete/incomplete  
-✅ **Delete Tasks**: Remove unwanted tasks  
-✅ **Persistent Storage**: Data saved in PostgreSQL database  
-✅ **Responsive Design**: Works on desktop and mobile  
-
-### Environment Configuration
-**Backend Environment Variables:**
-```bash
-DB_HOST=localhost
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=todo_db
-DB_PORT=5432
-PORT=5000
-```
-
-**Frontend Environment Variables:**
-```bash
-REACT_APP_API_URL=http://localhost:5000
-```
-
-### Local Testing Results
-- ✅ Backend API running on `http://localhost:5000`
-- ✅ Frontend React app running on `http://localhost:3000`
-- ✅ Database connectivity confirmed
-- ✅ All CRUD operations functional
+This project demonstrates the implementation of secure CI/CD pipelines using Docker, Jenkins, and GitHub Actions. The focus is on integrating security best practices to prevent common vulnerabilities such as exposed secrets, privilege escalation, and unauthorized deployments.
 
 ---
 
-## Part A: Docker Hub Deployment
+## Part 1: Docker Security Implementation ✅
 
-### Docker Images Created
-- **Backend**: `unknowntw/be-todo:02230304`
-- **Frontend**: `unknowntw/fe-todo:02230304`
+### 1.1 Non-Root User Configuration
+- **Implementation:** Created non-root user `todouser` with UID 1001 in Dockerfile
+- **Security Benefit:** Prevents privilege escalation attacks
+- **Verification:** Application runs as UID 1001 instead of root (UID 0)
 
-### Docker Build Process
-```bash
-# Backend Docker build and push
-cd backend
-docker buildx build --platform linux/amd64 -t unknowntw/be-todo:02230304 . --push
+### 1.2 Docker Secrets Management
+- **Implementation:** Used Docker Compose secrets to manage sensitive data
+- **Security Benefit:** Secrets stored in memory (`/run/secrets/`), not in image layers
+- **Verification:** Application successfully loads secrets without exposing them in logs
 
-# Frontend Docker build and push
-cd ../frontend
-docker buildx build --platform linux/amd64 -t unknowntw/fe-todo:02230304 . --push
-```
-
-### Render Deployment Steps
-
-#### 1. Database Setup
-- **Service**: PostgreSQL on Render
-- **Name**: `todo-db`
-- **Database**: `todo_db_25hq`
-- **User**: `todo_db_user`
-- **Host**: `dpg-d10i9rmmcj7s73boqa1g-a.oregon-postgres.render.com`
-- **Status**: ✅ Available
-
-#### 2. Backend Service Deployment
-- **Deployment Method**: Existing Docker Image
-- **Image**: `unknowntw/be-todo:02230304`
-- **Service Name**: `be-todo`
-- **Environment Variables**:
-  - `DB_HOST`: `dpg-d10i9rmmcj7s73boqa1g-a.oregon-postgres.render.com`
-  - `DB_USER`: `todo_db_user`
-  - `DB_PASSWORD`: `[configured]`
-  - `DB_NAME`: `todo_db_25hq`
-  - `PORT`: `5000`
-- **Status**: ✅ Deployed
-- **URL**: https://be-todo-8bkl.onrender.com
-
-#### 3. Frontend Service Deployment
-- **Deployment Method**: Existing Docker Image
-- **Image**: `unknowntw/fe-todo:02230304`
-- **Service Name**: `fe-todo`
-- **Environment Variables**:
-  - `REACT_APP_API_URL`: `https://be-todo-8bkl.onrender.com`
-- **Status**: ✅ Deployed
-- **URL**: https://fe-todo-vng3.onrender.com
-
-### Part A Testing Results
-- ✅ Backend API responds correctly: `GET /api/tasks` returns `[]`
-- ✅ Frontend loads and displays To-Do interface
-- ✅ Can add new tasks successfully
-- ✅ Can mark tasks as complete/incomplete
-- ✅ Can edit existing tasks
-- ✅ Can delete tasks
-- ✅ Data persistence confirmed across page refreshes
+![Docker Security](screenshots/docker-security.png)
+*Screenshot showing non-root user (UID: 1001) and secrets loaded successfully*
 
 ---
 
-## Part B: Automated GitHub Deployment
+## Part 2: Jenkins Secure Pipeline
 
-### Repository Configuration
-- **GitHub Repository**: `Tshering_Wangchuck_02230304_DSO101_A1`
-- **Deployment Method**: Blueprint (render.yaml)
-- **Trigger**: Automatic on Git push
+### Pipeline Implementation
+- **Setup:** Jenkins pipeline with secure credential management
+- **Credentials:** Docker Hub credentials stored as global credentials with ID `docker-hub-creds`
+- **Process:** Build → Security Scan → Push to Docker Hub → Cleanup
+- **Security Features:**
+  - Credential binding prevents secret exposure in logs
+  - Automatic cleanup of Docker resources
+  - Security scanning with Trivy
 
-### Configuration Files Created
+---
 
-#### render.yaml
-```yaml
-services:
-  - type: web
-    name: be-todo-auto
-    env: docker
-    dockerfilePath: ./backend/Dockerfile
-    envVars:
-      - key: DB_HOST
-        value: dpg-d10i9rmmcj7s73boqa1g-a.oregon-postgres.render.com
-      - key: DB_USER
-        value: todo_db_user
-      - key: DB_PASSWORD
-        value: [configured]
-      - key: DB_NAME
-        value: todo_db_25hq
-      - key: PORT
-        value: 5000
+## Part 3: GitHub Actions Secure Pipeline ✅
 
-  - type: web
-    name: fe-todo-auto
-    env: docker
-    dockerfilePath: ./frontend/Dockerfile
-    envVars:
-      - key: REACT_APP_API_URL
-        value: https://be-todo-auto.onrender.com
+### Implementation
+- **Secrets Management:** Repository secrets for Docker Hub authentication
+- **Security Features:**
+  - Only deploys from main branch
+  - Uses official Docker actions
+  - Implements proper error handling
+  - Multi-platform builds with caching
+
+
+---
+
+## Security Best Practices Implemented
+
+### 1. Container Security
+- ✅ **Non-root containers** - Prevents privilege escalation
+- ✅ **Secrets management** - Keeps sensitive data secure
+- ✅ **Health checks** - Ensures container reliability
+- ✅ **Image scanning** - Detects vulnerabilities
+
+### 2. CI/CD Security
+- ✅ **Credential binding** - Prevents exposure in logs
+- ✅ **Branch protection** - Only deploys from main branch
+- ✅ **Access tokens** - Uses tokens instead of passwords
+- ✅ **Resource cleanup** - Prevents resource leaks
+
+### 3. Access Control
+- ✅ **Repository secrets** - Secure credential storage
+- ✅ **Least privilege** - Minimal required permissions
+- ✅ **Audit trail** - Complete deployment history
+
+---
+
+## Deployment Evidence
+
+### Docker Hub Deployments
+
+
+### Application Security Verification
+```json
+{
+  "message": "Todo App with Docker Secrets",
+  "user": "UID: 1001",
+  "secrets_status": {
+    "db_password": "✅ Loaded",
+    "api_key": "✅ Loaded"
+  }
+}
 ```
-
-### Blueprint Deployment Process
-1. **Connected GitHub repository** to Render
-2. **Selected repository**: `Tshering_Wangchuck_02230304_DSO101_A1`
-3. **Render detected** `render.yaml` automatically
-4. **Simultaneous deployment** of both services
-5. **Build logs monitored** for successful deployment
-
-### Part B Deployment Results
-- **Backend Service**: `be-todo-auto` ✅ Deployed
-- **Frontend Service**: `fe-todo-auto` ✅ Deployed
-- **URLs**: 
-  - Backend: https://be-todo-auto.onrender.com
-  - Frontend: https://fe-todo-auto.onrender.com
-
-### Part B Testing Results
-- ✅ Automated builds trigger on Git commits
-- ✅ Both services deploy successfully from source code
-- ✅ All functionality identical to Part A
-- ✅ Database connection established
-- ✅ Full CRUD operations working
 
 ---
 
 ## Repository Structure
+
 ```
-Tshering_Wangchuck_02230304_DSO101_A1/
-├── backend/
-│   ├── server.js                # Express server with API routes
-│   ├── package.json             # Node.js dependencies
-│   ├── Dockerfile               # Backend container configuration
-│   ├── .env                     # Local environment variables (not committed)
-│   └── .env.production          # Production environment template
-├── frontend/
-│   ├── src/
-│   │   ├── App.js               # Main React component
-│   │   └── App.css              # Styling
-│   ├── public/
-│   ├── package.json             # React dependencies
-│   ├── Dockerfile               # Frontend container configuration
-│   ├── .env                     # Local environment variables (not committed)
-│   └── .env.production          # Production environment template
-├── render.yaml                  # Blueprint deployment configuration
-├── .gitignore                   # Git ignore rules (includes .env files)
-└── README.md                    # This documentation
+todo-app/
+├── Dockerfile                 # Secure container configuration
+├── docker-compose.yml         # Secrets management setup
+├── Jenkinsfile               # Jenkins pipeline configuration
+├── .github/workflows/        # GitHub Actions workflows
+├── src/                      # Application source code
+├── secrets/                  # Docker secrets (not committed)
+└── screenshots/              # Evidence screenshots
 ```
 
 ---
 
-## Challenges Encountered and Solutions
+## How to Run
 
-### Challenge 1: Docker Platform Compatibility
-**Problem**: Initial Docker images failed on Render with "invalid platform" error
-```
-The provided image URL points to an image with an invalid platform. 
-Images must be built with the platform linux/amd64.
-```
-
-**Solution**: Rebuilt Docker images with platform specification
+### With Docker Compose (Recommended for testing secrets):
 ```bash
-docker buildx build --platform linux/amd64 -t unknowntw/be-todo:02230304 . --push
+docker-compose up --build
 ```
 
-**Result**: ✅ Images deployed successfully on Render
-
-### Challenge 2: Backend API Routing Issues
-**Problem**: Backend returned "Cannot GET /" when accessing base URL
-
-**Root Cause**: Missing root route handler in Express server
-
-**Solution**: Added root route to server.js
-```javascript
-app.get('/', (req, res) => {
-  res.json({ message: 'Todo API is running!' });
-});
+### With Docker only:
+```bash
+docker build -t todo-app .
+docker run -p 3000:3000 todo-app
 ```
 
-**Result**: ✅ Backend responds correctly to all requests
-
-### Challenge 3: Frontend-Backend Connection
-**Problem**: Frontend couldn't communicate with backend API
-
-**Root Cause**: Incorrect backend URL in frontend environment variables
-
-**Solution**: Updated `REACT_APP_API_URL` with correct Render URLs:
-- Part A: `https://be-todo-8bkl.onrender.com`
-- Part B: `https://be-todo-auto.onrender.com`
-
-**Result**: ✅ Frontend successfully communicates with backend
-
-### Challenge 4: Database Connection Configuration
-**Problem**: Backend couldn't connect to PostgreSQL database
-
-**Solution**: Verified and corrected environment variables:
-- Obtained exact credentials from Render PostgreSQL dashboard
-- Updated all database connection parameters
-- Ensured consistency across both deployment methods
-
-**Result**: ✅ Database connectivity established, data persistence working
+### Local Development:
+```bash
+npm install
+npm start
+```
 
 ---
 
-## Key Learnings
+## Key Achievements
 
-### Docker & Containerization
-- **Platform Awareness**: Importance of building images for target platform (linux/amd64)
-- **Multi-stage Builds**: Efficient frontend builds using Node.js build stage and Nginx serve stage
-- **Environment Variables**: Proper handling of sensitive configuration data
-
-### CI/CD Pipeline Implementation
-- **Manual vs Automated**: Understanding differences between Docker Hub deployment and Git-based deployment
-- **Blueprint Configuration**: Declarative infrastructure as code using render.yaml
-- **Environment Management**: Separating development and production configurations
-
-### Cloud Deployment
-- **Service Dependencies**: Coordinating database, backend, and frontend deployments
-- **URL Management**: Handling dynamic service URLs in cloud environments
-- **Monitoring & Debugging**: Using logs and service status for troubleshooting
+1. **✅ Implemented non-root Docker containers** - Running as UID 1001
+2. **✅ Configured Docker secrets management** - Secrets loaded from `/run/secrets/`
+3. **✅ Set up secure Jenkins pipeline** - With credential binding and security scanning
+4. **✅ Implemented GitHub Actions workflow** - With repository secrets and branch protection
+5. **✅ Achieved end-to-end security** - From development to deployment
 
 ---
 
-## Performance & Monitoring
+## Security Measures Summary
 
-### Application Performance
-- **Load Time**: Frontend loads in < 2 seconds
-- **API Response**: Backend API responds in < 500ms
-- **Database Queries**: Optimized with proper indexing
-
-### Monitoring Capabilities
-- **Render Dashboard**: Real-time service status and logs
-- **Error Tracking**: Application errors visible in service logs
-- **Uptime Monitoring**: Automatic health checks and restart policies
-
----
-
-## Security Considerations
-
-### Environment Variables
-- ✅ Sensitive data (passwords) stored in environment variables
-- ✅ `.env` files excluded from version control
-- ✅ Production environment variables configured separately
-
-### Database Security
-- ✅ PostgreSQL hosted on secure cloud infrastructure
-- ✅ Connection credentials managed by Render
-- ✅ Database access restricted to authorized services
-
-### HTTPS/SSL
-- ✅ All deployed services use HTTPS by default
-- ✅ Secure communication between frontend and backend
-- ✅ Database connections encrypted
-
----
-
-## Deployment Comparison
-
-| Aspect | Part A (Docker Hub) | Part B (GitHub Auto) |
-|--------|--------------------|--------------------|
-| **Deployment Trigger** | Manual | Automatic on Git push |
-| **Build Location** | Local machine | Render cloud |
-| **Image Storage** | Docker Hub | Built on-demand |
-| **Update Process** | Rebuild → Push → Redeploy | Git push |
-| **Rollback** | Manual image selection | Git revert |
-| **CI/CD Integration** | Partial | Full |
-
----
-
-## Future Improvements
-
-### Enhanced CI/CD
-- [ ] Add automated testing in pipeline
-- [ ] Implement staging environment
-- [ ] Add code quality checks (linting, security scans)
-
-### Application Features
-- [ ] User authentication and authorization
-- [ ] Task categories and tags
-- [ ] Due dates and reminders
-- [ ] Collaborative task sharing
-
-### Infrastructure
-- [ ] Database backup and recovery
-- [ ] Performance monitoring and alerting
-- [ ] Auto-scaling configuration
+| Security Feature | Implementation | Status |
+|-----------------|----------------|---------|
+| Non-root containers | Dockerfile USER directive | ✅ Complete |
+| Docker secrets | docker-compose.yml secrets | ✅ Complete |
+| Jenkins credentials | Global credentials binding | ✅ Complete |
+| GitHub secrets | Repository secrets | ✅ Complete |
+| Branch protection | Main branch only deployment | ✅ Complete |
+| Access tokens | Docker Hub tokens vs passwords | ✅ Complete |
+| Security scanning | Trivy integration | ✅ Complete |
+| Resource cleanup | Automated cleanup scripts | ✅ Complete |
 
 ---
 
 ## Conclusion
 
-This assignment successfully demonstrates both manual and automated CI/CD pipeline implementations. The application is fully functional across both deployment methods, showcasing:
+This project successfully demonstrates the implementation of a secure CI/CD pipeline with multiple layers of security:
 
-- **Containerization** with Docker
-- **Cloud deployment** on Render.com
-- **Database integration** with PostgreSQL
-- **Environment management** for different stages
-- **Infrastructure as Code** with Blueprint deployment
+- **Container-level security** through non-root users and secrets management
+- **Pipeline security** through proper credential handling and access controls  
+- **Deployment security** through branch protection and audit trails
 
-Both Part A (Docker Hub) and Part B (GitHub automation) achieve the same end result through different methodologies, providing valuable insights into modern DevOps practices and cloud deployment strategies.
+The implementation addresses all major security vulnerabilities commonly found in CI/CD pipelines and provides a robust foundation for secure application deployment.
 
----
-
-## Assignment Completion Checklist
-
-- ✅ **Step 0**: Local development environment set up
-- ✅ **Part A**: Docker images built and deployed via Docker Hub
-- ✅ **Part B**: Automated deployment configured via GitHub integration
-- ✅ **Documentation**: Comprehensive README with screenshots and explanations
-- ✅ **Testing**: Both deployment methods fully functional
-- ✅ **Repository**: Proper folder structure and file organization
-
-**Final Status**: Assignment Complete ✅
-# CI/CD Setup
-# Testing fixed token
-![CI/CD Pipeline](https://github.com/your-username/your-repo/workflows/CI%2FCD%20Pipeline/badge.svg)
+**All security requirements for Assignment 4 have been successfully implemented and verified.**
