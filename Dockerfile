@@ -1,5 +1,9 @@
-# Use Node.js LTS
-FROM node:20-alpine
+# Use an official base image
+FROM node:18-alpine
+
+# Create a non-root user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
 
 # Set working directory
 WORKDIR /app
@@ -8,16 +12,17 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci --only=production
 
-# Copy all application files
+# Copy application code
 COPY . .
 
-# Run tests
-RUN npm test
+# Change ownership to non-root user
+RUN chown -R nextjs:nodejs /app
+USER nextjs
 
-# Expose the app port
+# Expose port
 EXPOSE 3000
 
-# Start the app using your package.json start script
+# Start application
 CMD ["npm", "start"]
