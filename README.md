@@ -371,3 +371,4 @@ Both Part A (Docker Hub) and Part B (GitHub automation) achieve the same end res
 **Final Status**: Assignment Complete ✅
 # CI/CD Setup
 # Testing fixed token
+![CI/CD Pipeline](https://github.com/your-username/your-repo/workflows/CI%2FCD%20Pipeline/badge.svg)
