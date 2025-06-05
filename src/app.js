@@ -1,80 +1,85 @@
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Function to safely read Docker secrets
+function readSecret(secretName) {
+  try {
+    const secretPath = `/run/secrets/${secretName}`;
+    
+    // Check if running in Docker with secrets
+    if (fs.existsSync(secretPath)) {
+      const secret = fs.readFileSync(secretPath, 'utf8').trim();
+      console.log(`✅ Secret '${secretName}' loaded from Docker secrets`);
+      return secret;
+    }
+    
+    // Fallback for development (environment variables)
+    const envSecret = process.env[secretName.toUpperCase()];
+    if (envSecret) {
+      console.log(`✅ Secret '${secretName}' loaded from environment`);
+      return envSecret;
+    }
+    
+    // Final fallback
+    console.log(`⚠️ Secret '${secretName}' not found, using default`);
+    return 'default-value';
+    
+  } catch (error) {
+    console.error(`❌ Error reading secret '${secretName}':`, error.message);
+    return 'default-value';
+  }
+}
+
+// Load secrets at startup
+const dbPassword = readSecret('db_password');
+const apiKey = readSecret('api_key');
+
 // Middleware
 app.use(express.json());
 app.use(express.static('public'));
 
-// Simple in-memory todos for CI/CD testing
-let todos = [
-  { id: 1, text: 'Complete DSO101 Assignment 1', completed: true },
-  { id: 2, text: 'Setup Jenkins CI/CD Pipeline', completed: false },
-  { id: 3, text: 'Deploy Todo App', completed: false }
-];
-
 // Routes
 app.get('/', (req, res) => {
   res.json({
-    message: 'Todo App CI/CD Pipeline - DSO101 Assignment 2',
-    author: 'Tshering Wangchuck',
-    endpoints: {
-      todos: '/api/todos',
-      health: '/health'
+    message: 'Todo App with Docker Secrets',
+    timestamp: new Date().toISOString(),
+    user: process.getuid ? `UID: ${process.getuid()}` : 'Unknown',
+    secrets_status: {
+      db_password: dbPassword !== 'default-value' ? '✅ Loaded' : '❌ Missing',
+      api_key: apiKey !== 'default-value' ? '✅ Loaded' : '❌ Missing'
     }
   });
 });
 
-// Health check endpoint (useful for CI/CD)
 app.get('/health', (req, res) => {
   res.json({ 
-    status: 'OK', 
+    status: 'healthy', 
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
 });
 
-// Get all todos
-app.get('/api/todos', (req, res) => {
+// Todo routes (example)
+app.get('/todos', (req, res) => {
+  // Use the secrets in your application logic
+  console.log('DB Password available:', dbPassword !== 'default-value');
+  console.log('API Key available:', apiKey !== 'default-value');
+  
   res.json({
-    success: true,
-    count: todos.length,
-    data: todos
+    todos: [
+      { id: 1, text: 'Learn Docker Secrets', completed: true },
+      { id: 2, text: 'Implement CI/CD', completed: false }
+    ]
   });
 });
 
-// Add new todo
-app.post('/api/todos', (req, res) => {
-  const { text } = req.body;
-  if (!text) {
-    return res.status(400).json({ 
-      success: false, 
-      error: 'Text is required' 
-    });
-  }
-  
-  const newTodo = {
-    id: Date.now(),
-    text: text,
-    completed: false
-  };
-  
-  todos.push(newTodo);
-  res.status(201).json({
-    success: true,
-    data: newTodo
-  });
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Running as user: ${process.getuid ? process.getuid() : 'N/A'}`);
+  console.log(`🔐 Secrets loaded: DB=${dbPassword !== 'default-value'}, API=${apiKey !== 'default-value'}`);
 });
-
-// Start server only if this file is run directly
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`🚀 Todo App CI/CD running on http://localhost:${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`📝 Todos API: http://localhost:${PORT}/api/todos`);
-  });
-}
-
-module.exports = app;
