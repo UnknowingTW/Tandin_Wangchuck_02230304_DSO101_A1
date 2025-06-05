@@ -1,10 +1,7 @@
-
-cat > tests/app.test.js << 'EOF'
-// tests/app.test.js - Unit tests for CI/CD pipeline
 const request = require('supertest');
 const app = require('../src/app');
 
-describe('Todo App API Tests', () => {
+describe('Todo App', () => {
   
   test('should return app info on root endpoint', async () => {
     const response = await request(app).get('/');
@@ -68,4 +65,3 @@ describe('Todo App API Tests', () => {
     expect(typeof todo.id).toBe('number');
   });
 });
-EOF

@@ -1,5 +1,3 @@
-cat > src/app.js << 'EOF'
-// src/app.js - Main entry point for CI/CD pipeline
 const express = require('express');
 const path = require('path');
 
@@ -80,4 +78,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-EOF

@@ -1,3 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="0" failures="0" errors="0" time="0.313">
+<testsuites name="jest tests" tests="7" failures="0" errors="0" time="0.144">
+  <testsuite name="Todo App" errors="0" failures="0" skipped="0" timestamp="2025-06-05T10:30:11" time="0.131" tests="7">
+    <testcase classname="Todo App should return app info on root endpoint" name="Todo App should return app info on root endpoint" time="0.008">
+    </testcase>
+    <testcase classname="Todo App should return health status" name="Todo App should return health status" time="0.001">
+    </testcase>
+    <testcase classname="Todo App should get all todos" name="Todo App should get all todos" time="0.002">
+    </testcase>
+    <testcase classname="Todo App should create a new todo" name="Todo App should create a new todo" time="0.004">
+    </testcase>
+    <testcase classname="Todo App should reject todo creation without text" name="Todo App should reject todo creation without text" time="0.002">
+    </testcase>
+    <testcase classname="Todo App should perform basic calculations" name="Todo App should perform basic calculations" time="0">
+    </testcase>
+    <testcase classname="Todo App should handle todo object creation" name="Todo App should handle todo object creation" time="0">
+    </testcase>
+  </testsuite>
 </testsuites>
