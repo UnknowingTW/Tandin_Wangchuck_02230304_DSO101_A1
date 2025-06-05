@@ -369,3 +369,4 @@ Both Part A (Docker Hub) and Part B (GitHub automation) achieve the same end res
 - ✅ **Repository**: Proper folder structure and file organization
 
 **Final Status**: Assignment Complete ✅
+# CI/CD Setup

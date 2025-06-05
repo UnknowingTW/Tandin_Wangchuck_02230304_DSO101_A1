@@ -39,6 +39,7 @@ jobs:
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/todo-app:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/todo-app:latest
       
-      # 6. Success message
-      - name: Deployment Complete
-        run: echo "Docker image built and pushed successfully!"
+      # 6. Deploy to Render.com (via webhook)
+      - name: Trigger Render Deployment
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
