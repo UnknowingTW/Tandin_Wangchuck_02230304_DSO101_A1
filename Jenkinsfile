@@ -11,7 +11,7 @@ pipeline {
                 echo 'Checking out code from GitHub...'
                 git branch: 'main',
                     credentialsId: 'github-credentials',
-                    url: 'https://github.com/UnknowingTW/Tshering_Wangchuck_02230304_DSO101_A1.git'
+                    url: 'https://github.com/UnknowingTW/Tandin_Wangchuck_02230304_DSO101_A1.git'
             }
         }
         
