@@ -1,0 +1,35 @@
+{
+  "name": "tshering-todo-app-cicd",
+  "version": "1.0.0",
+  "description": "Todo application with CI/CD pipeline - DSO101 Assignment 2",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "build": "echo 'Build completed successfully'",
+    "test": "jest --ci --reporters=default --reporters=jest-junit",
+    "test:local": "jest",
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm start"
+  },
+  "dependencies": {
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-junit": "^16.0.0",
+    "supertest": "^7.1.1"
+  },
+  "jest-junit": {
+    "outputDirectory": "./",
+    "outputName": "junit.xml"
+  },
+  "keywords": [
+    "todo",
+    "nodejs",
+    "express",
+    "cicd",
+    "jenkins"
+  ],
+  "author": "Tshering Wangchuck",
+  "license": "MIT"
+}
